@@ -52,7 +52,7 @@ import (
 
 var (
 	flagConfig = flag.String("config", "", "configuration file")
-	flagDebug  = flag.Bool("debug", false, "dump all VM output to console")
+	flagDebug  = flag.Bool("debug", true, "dump all VM output to console")
 	flagBench  = flag.String("bench", "", "write execution statistics into this file periodically")
 
 	flagMode = flag.String("mode", "fuzzing", "mode of operation, one of:\n"+
