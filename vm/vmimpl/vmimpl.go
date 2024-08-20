@@ -236,6 +236,9 @@ func RandomPort() int {
 func UnusedTCPPort() int {
 	for {
 		port := RandomPort()
+		if port == 2222 {
+			continue
+		}
 		ln, err := net.Listen("tcp", fmt.Sprintf("localhost:%v", port))
 		if err == nil {
 			ln.Close()
