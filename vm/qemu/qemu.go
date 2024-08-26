@@ -508,7 +508,7 @@ func (inst *instance) buildQemuArgs() ([]string, error) {
 	args = append(args,
 		//"-device", inst.cfg.NetDev+",netdev=net0",
 		//"-netdev", fmt.Sprintf("user,id=net0,restrict=on,hostfwd=tcp:127.0.0.1:%v-:22", inst.port),
-		"-net", fmt.Sprintf("user,id=net0,hostfwd=tcp:127.0.0.1:%v-:2222", inst.port),
+		"-net", fmt.Sprintf("user,id=net0,hostfwd=tcp:127.0.0.1:10022-:22,hostfwd=tcp:127.0.0.1:%v-:2222", inst.port),
 		"-net", "nic,model=e1000",
 	)
 	if inst.image == "9p" {
