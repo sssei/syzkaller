@@ -429,7 +429,8 @@ func (inst *instance) Close() error {
 }
 
 func (inst *instance) boot() error {
-	inst.port = vmimpl.UnusedTCPPort()
+	// inst.port = vmimpl.UnusedTCPPort()
+	inst.port = 10024
 	inst.monport = vmimpl.UnusedTCPPort()
 	args, err := inst.buildQemuArgs()
 	if err != nil {
@@ -508,7 +509,7 @@ func (inst *instance) buildQemuArgs() ([]string, error) {
 	args = append(args,
 		//"-device", inst.cfg.NetDev+",netdev=net0",
 		//"-netdev", fmt.Sprintf("user,id=net0,restrict=on,hostfwd=tcp:127.0.0.1:%v-:22", inst.port),
-		"-net", "user,id=net0,hostfwd=tcp:127.0.0.1:10022-:22,hostfwd=tcp:127.0.0.1:10024-:2222",
+		"-net", fmt.Sprintf("user,id=net0,hostfwd=tcp:127.0.0.1:10022-:22,hostfwd=tcp:127.0.0.1:%v-:2222", inst.port),
 		"-net", "nic,model=e1000",
 	)
 	if inst.image == "9p" {
