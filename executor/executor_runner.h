@@ -191,6 +191,7 @@ private:
 		int status = process_->KillAndWait();
 		process_.reset();
 		debug("proc %d: subprocess exit status %d\n", id_, status);
+
 		if (++attempts_ > 20) {
 			while (ReadOutput())
 				;
@@ -218,6 +219,8 @@ private:
 			HandleCompletion(status);
 		} else if (attempts_ > 3)
 			sleep_ms(100 * attempts_);
+
+		debug("proc %d: restarting subprocess\n", id_);
 		Start();
 	}
 
@@ -254,6 +257,8 @@ private:
 		    {cover_filter_fd_, kCoverFilterFd},
 		};
 		const char* argv[] = {bin_, "exec", nullptr};
+
+		debug("In Start(): process_.emplace()\n");
 		process_.emplace(argv, fds);
 
 		Select::Prepare(resp_pipe[0]);
@@ -731,6 +736,7 @@ private:
 		    {stdout_pipe[1], STDOUT_FILENO},
 		    {stdout_pipe[1], STDERR_FILENO},
 		};
+
 		Subprocess process(argv, fds);
 
 		close(stdin_pipe[0]);

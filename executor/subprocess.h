@@ -57,9 +57,10 @@ public:
 		    nullptr};
 
 		if (posix_spawn(&pid_, argv[0], &actions, &attr,
-				const_cast<char**>(argv), const_cast<char**>(child_envp)))
+				const_cast<char**>(argv), const_cast<char**>(child_envp))){
+			fprintf(stderr, "argv[0]: %s\n", argv[0]);
 			fail("posix_spawn failed");
-
+		}
 		if (posix_spawn_file_actions_destroy(&actions))
 			fail("posix_spawn_file_actions_destroy failed");
 		if (posix_spawnattr_destroy(&attr))
