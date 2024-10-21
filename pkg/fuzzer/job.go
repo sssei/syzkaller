@@ -457,7 +457,7 @@ func (job *hintsJob) run(fuzzer *Fuzzer) {
 	for i := 0; i < 3; i++ {
 		result := fuzzer.execute(job.exec, &queue.Request{
 			Prog:     p,
-			ExecOpts: setFlags(flatrpc.ExecFlagCollectComps | flatrpc.ExecFlagCollectCover),
+			ExecOpts: setFlags(flatrpc.ExecFlagCollectComps),
 			Stat:     fuzzer.statExecSeed,
 		})
 		if result.Stop() {
