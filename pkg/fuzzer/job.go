@@ -25,7 +25,7 @@ func genProgRequest(fuzzer *Fuzzer, rnd *rand.Rand) *queue.Request {
 		fuzzer.ChoiceTable())
 	return &queue.Request{
 		Prog:     p,
-		ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal),
+		ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal | flatrpc.ExecFlagCollectCover),
 		Stat:     fuzzer.statExecGenerate,
 	}
 }
@@ -44,7 +44,7 @@ func mutateProgRequest(fuzzer *Fuzzer, rnd *rand.Rand) *queue.Request {
 	)
 	return &queue.Request{
 		Prog:     newP,
-		ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal),
+		ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal | flatrpc.ExecFlagCollectCover),
 		Stat:     fuzzer.statExecFuzz,
 	}
 }
@@ -384,7 +384,7 @@ func (job *smashJob) run(fuzzer *Fuzzer) {
 			fuzzer.Config.Corpus.Programs())
 		result := fuzzer.execute(job.exec, &queue.Request{
 			Prog:     p,
-			ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal),
+			ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal | flatrpc.ExecFlagCollectCover),
 			Stat:     fuzzer.statExecSmash,
 		})
 		if result.Stop() {
@@ -457,7 +457,7 @@ func (job *hintsJob) run(fuzzer *Fuzzer) {
 	for i := 0; i < 3; i++ {
 		result := fuzzer.execute(job.exec, &queue.Request{
 			Prog:     p,
-			ExecOpts: setFlags(flatrpc.ExecFlagCollectComps),
+			ExecOpts: setFlags(flatrpc.ExecFlagCollectComps | flatrpc.ExecFlagCollectCover),
 			Stat:     fuzzer.statExecSeed,
 		})
 		if result.Stop() {
@@ -486,7 +486,7 @@ func (job *hintsJob) run(fuzzer *Fuzzer) {
 		func(p *prog.Prog) bool {
 			result := fuzzer.execute(job.exec, &queue.Request{
 				Prog:     p,
-				ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal),
+				ExecOpts: setFlags(flatrpc.ExecFlagCollectSignal | flatrpc.ExecFlagCollectCover),
 				Stat:     fuzzer.statExecHint,
 			})
 			return !result.Stop()

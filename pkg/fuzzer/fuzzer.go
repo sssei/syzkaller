@@ -14,6 +14,7 @@ import (
 	"github.com/google/syzkaller/pkg/corpus"
 	"github.com/google/syzkaller/pkg/flatrpc"
 	"github.com/google/syzkaller/pkg/fuzzer/queue"
+	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/pkg/stat"
 	"github.com/google/syzkaller/prog"
@@ -125,6 +126,7 @@ func (fuzzer *Fuzzer) processResult(req *queue.Request, res *queue.Result, flags
 	// it may result it concurrent modification of req.Prog.
 	// If we are already triaging this exact prog, this is flaky coverage.
 	var triage map[int]*triageCall
+
 	if req.ExecOpts.ExecFlags&flatrpc.ExecFlagCollectSignal > 0 && res.Info != nil && !inTriage {
 		for call, info := range res.Info.Calls {
 			fuzzer.triageProgCall(req.Prog, info, call, &triage)
@@ -185,12 +187,35 @@ type Config struct {
 	NewInputFilter func(call string) bool
 }
 
+func (fuzzer *Fuzzer) CoverHasFs(info *flatrpc.CallInfo) bool {
+	if info == nil {
+		return false
+	}
+	for call, cov := range info.Cover {
+		if cov >= 0xffffffff81e3c370 && cov <= 0xffffffff82244f00 {
+			log.Logf(0, "-----CoverHasFs is True, cover : 0x%x, call : %v", cov, call)
+			return true
+		}
+	}
+	log.Logf(0, "-----CoverHasFs is False")
+	return false
+}
+
 func (fuzzer *Fuzzer) triageProgCall(p *prog.Prog, info *flatrpc.CallInfo, call int, triage *map[int]*triageCall) {
 	if info == nil {
 		return
 	}
 	prio := signalPrio(p, info, call)
 	newMaxSignal := fuzzer.Cover.addRawMaxSignal(info.Signal, prio)
+
+	log.Logf(0, "-----triageProgCall: call %d, syscall : %v, cover len : %v, cover[0] : %v", call, p.CallName(call), len(info.Cover), info.Cover[0])
+
+	if !fuzzer.CoverHasFs(info) {
+		if fuzzer.rnd.Intn(100) < 95 {
+			return
+		}
+	}
+
 	if newMaxSignal.Empty() {
 		return
 	}
@@ -296,7 +321,7 @@ func (fuzzer *Fuzzer) AddCandidates(candidates []Candidate) {
 	for _, candidate := range candidates {
 		req := &queue.Request{
 			Prog:      candidate.Prog,
-			ExecOpts:  setFlags(flatrpc.ExecFlagCollectSignal),
+			ExecOpts:  setFlags(flatrpc.ExecFlagCollectSignal | flatrpc.ExecFlagCollectCover),
 			Stat:      fuzzer.statExecCandidate,
 			Important: true,
 		}
