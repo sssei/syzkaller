@@ -208,7 +208,7 @@ func (fuzzer *Fuzzer) triageProgCall(p *prog.Prog, info *flatrpc.CallInfo, call 
 	prio := signalPrio(p, info, call)
 	newMaxSignal := fuzzer.Cover.addRawMaxSignal(info.Signal, prio)
 
-	log.Logf(0, "-----triageProgCall: call %d, syscall : %v, cover len : %v, cover[0] : %v", call, p.CallName(call), len(info.Cover), info.Cover[0])
+	log.Logf(0, "-----triageProgCall: call %d, syscall : %v, cover len : %v, cover[0] : %v", call, p.CallName(call), len(info.Cover))
 
 	if !fuzzer.CoverHasFs(info) {
 		if fuzzer.rnd.Intn(100) < 95 {
