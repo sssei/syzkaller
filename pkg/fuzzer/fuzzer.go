@@ -192,12 +192,17 @@ func (fuzzer *Fuzzer) CoverHasFs(info *flatrpc.CallInfo) bool {
 		return false
 	}
 	for call, cov := range info.Cover {
-		if cov >= 0xffffffff81e3c370 && cov <= 0xffffffff82244f00 {
+		if cov >= 0xffffffff81a37bf7 && cov <= 0xffffffff81f7d9df {
 			log.Logf(0, "-----CoverHasFs is True, cover : 0x%x, call : %v", cov, call)
 			return true
 		}
 	}
-	log.Logf(0, "-----CoverHasFs is False")
+	if len(info.Cover) > 0 {
+		log.Logf(0, "-----CoverHasFs is False")
+	} else {
+		log.Logf(0, "-----Cover len is 0")
+	}
+
 	return false
 }
 
