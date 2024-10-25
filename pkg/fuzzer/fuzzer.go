@@ -211,9 +211,7 @@ func (fuzzer *Fuzzer) triageProgCall(p *prog.Prog, info *flatrpc.CallInfo, call 
 	log.Logf(0, "-----triageProgCall: call %d, syscall : %v, cover len : %v, cover[0] : %v", call, p.CallName(call), len(info.Cover))
 
 	if !fuzzer.CoverHasFs(info) {
-		if fuzzer.rnd.Intn(100) < 95 {
-			return
-		}
+		return
 	}
 
 	if newMaxSignal.Empty() {
