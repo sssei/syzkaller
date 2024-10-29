@@ -14,7 +14,6 @@ import (
 	"github.com/google/syzkaller/pkg/corpus"
 	"github.com/google/syzkaller/pkg/flatrpc"
 	"github.com/google/syzkaller/pkg/fuzzer/queue"
-	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/pkg/stat"
 	"github.com/google/syzkaller/prog"
@@ -187,45 +186,24 @@ type Config struct {
 	NewInputFilter func(call string) bool
 }
 
-func (fuzzer *Fuzzer) CoverHasFs(info *flatrpc.CallInfo) bool {
-	if info == nil {
-		return false
-	}
-	for call, cov := range info.Cover {
-		if cov >= 0xffffffff81a37bf7 && cov <= 0xffffffff81f7d9df {
-			log.Logf(0, "-----CoverHasFs is True, cover : 0x%x, call : %v", cov, call)
-			return true
-		}
-	}
-	if len(info.Cover) > 0 {
-		log.Logf(0, "-----CoverHasFs is False")
-	} else {
-		log.Logf(0, "-----Cover len is 0")
-	}
-
-	return false
-}
-
 func (fuzzer *Fuzzer) triageProgCall(p *prog.Prog, info *flatrpc.CallInfo, call int, triage *map[int]*triageCall) {
 	if info == nil {
 		return
 	}
 	prio := signalPrio(p, info, call)
+
 	newMaxSignal := fuzzer.Cover.addRawMaxSignal(info.Signal, prio)
-
-	log.Logf(0, "-----triageProgCall: call %d, syscall : %v, cover len : %v, cover[0] : %v", call, p.CallName(call), len(info.Cover))
-
-	if !fuzzer.CoverHasFs(info) {
-		return
-	}
 
 	if newMaxSignal.Empty() {
 		return
 	}
+
+	// If we have a new signal, we need to check if it's a new signal or a new signal with a new errno.
 	if !fuzzer.Config.NewInputFilter(p.CallName(call)) {
 		return
 	}
 	fuzzer.Logf(2, "found new signal in call %d in %s", call, p)
+	fuzzer.Logf(0, "-----found new signal in call %d in %s", call, p)
 	if *triage == nil {
 		*triage = make(map[int]*triageCall)
 	}

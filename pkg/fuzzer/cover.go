@@ -32,10 +32,22 @@ func (cover *Cover) AddMaxSignal(sign signal.Signal) {
 	cover.maxSignal.Merge(sign)
 }
 
+func filterFsSignal(signal []uint64) []uint64 {
+	filtered := make([]uint64, 0, len(signal))
+	for _, cover := range signal {
+		if cover >= 0xffffffff81a37bf7 && cover <= 0xffffffff81f7d9df {
+			filtered = append(filtered, cover)
+		}
+	}
+
+	return filtered
+}
+
 func (cover *Cover) addRawMaxSignal(signal []uint64, prio uint8) signal.Signal {
 	cover.mu.Lock()
 	defer cover.mu.Unlock()
-	diff := cover.maxSignal.DiffRaw(signal, prio)
+	fs_signal := filterFsSignal(signal)
+	diff := cover.maxSignal.DiffRaw(fs_signal, prio)
 	if diff.Empty() {
 		return diff
 	}

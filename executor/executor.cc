@@ -248,7 +248,7 @@ static OutputData* output_data;
 static std::optional<ShmemBuilder> output_builder;
 static uint32 output_size;
 static void mmap_output(uint32 size);
-static uint32 hash(uint32 a);
+//static uint32 hash(uint32 a);
 static bool dedup(uint8 index, uint64 sig);
 
 static uint64 start_time_ms = 0;
@@ -1120,6 +1120,9 @@ uint32 write_signal(flatbuffers::FlatBufferBuilder& fbb, int index, cover_t* cov
 	for (uint32 i = 0; i < cov->size; i++) {
 		cover_data_t pc = cover_data[i] + cov->pc_offset;
 		uint64 sig = pc;
+
+		// for directed fuzzing 
+		use_cover_edges = false;
 		if (use_cover_edges) {
 			// Only hash the lower 12 bits so the hash is independent of any module offsets.
 			const uint64 mask = (1 << 12) - 1;
@@ -1269,9 +1272,9 @@ void write_output(int index, cover_t* cov, rpc::CallFlag flags, uint32 error, bo
 	} else {
 		if (flag_collect_signal) {
 			if (is_kernel_64_bit)
-				signal_off = write_signal<uint64>(fbb, index, cov, all_signal);
+				signal_off = write_cover<uint64>(fbb, cov);
 			else
-				signal_off = write_signal<uint32>(fbb, index, cov, all_signal);
+				signal_off = write_cover<uint32>(fbb, cov);
 		}
 		if (flag_collect_cover) {
 			if (is_kernel_64_bit)
@@ -1478,7 +1481,7 @@ void execute_call(thread_t* th)
 	debug("\n");
 }
 
-static uint32 hash(uint32 a)
+/* static uint32 hash(uint32 a)
 {
 	// For test OS we disable hashing for determinism and testability.
 #if !GOOS_test
@@ -1489,7 +1492,7 @@ static uint32 hash(uint32 a)
 	a = a ^ (a >> 15);
 #endif
 	return a;
-}
+} */
 
 const uint32 dedup_table_size = 8 << 10;
 uint64 dedup_table_sig[dedup_table_size];
