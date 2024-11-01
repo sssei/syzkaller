@@ -35,7 +35,7 @@ func (cover *Cover) AddMaxSignal(sign signal.Signal) {
 func filterFsSignal(signal []uint64) []uint64 {
 	filtered := make([]uint64, 0, len(signal))
 	for _, cover := range signal {
-		if cover >= 0xffffffff81a37bf7 && cover <= 0xffffffff81f7d9df {
+		if (0xffffffff831ba096 <= cover && cover <= 0xffffffff838eeede) || (0xffffffff85b767b8 <= cover && cover <= 0xffffffff85b7e8d1) {
 			filtered = append(filtered, cover)
 		}
 	}
