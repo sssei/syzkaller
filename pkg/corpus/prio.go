@@ -8,6 +8,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/prog"
 )
@@ -41,10 +42,26 @@ func (pl *ProgramsList) Programs() []*prog.Prog {
 func (pl *ProgramsList) saveProgram(p *prog.Prog, signal signal.Signal) {
 	pl.mu.Lock()
 	defer pl.mu.Unlock()
+
+	io_uring_flag := false
+	for cover := range signal {
+		// io_uring
+		if cover >= 0xffffffff81ba06ed && cover <= 0xffffffff81bd1636 {
+			io_uring_flag = true
+		}
+	}
+
 	prio := int64(len(signal))
 	if prio == 0 {
 		prio = 1
 	}
+
+	if io_uring_flag {
+		prio *= 100000
+		log.Logf(0, "----- io_uring program found: %v, prio=%v", p, prio)
+
+	}
+
 	pl.sumPrios += prio
 	pl.accPrios = append(pl.accPrios, pl.sumPrios)
 	pl.progs = append(pl.progs, p)
