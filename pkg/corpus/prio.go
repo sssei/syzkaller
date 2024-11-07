@@ -16,6 +16,7 @@ import (
 type ProgramsList struct {
 	mu       sync.RWMutex
 	progs    []*prog.Prog
+	ioUringProgs []*prog.Prog
 	sumPrios int64
 	accPrios []int64
 }
@@ -30,6 +31,12 @@ func (pl *ProgramsList) ChooseProgram(r *rand.Rand) *prog.Prog {
 	idx := sort.Search(len(pl.accPrios), func(i int) bool {
 		return pl.accPrios[i] >= randVal
 	})
+	if rand.Intn(100) < 50 {
+		if len(pl.ioUringProgs) == 0 {
+			return pl.progs[idx]
+		}
+		return pl.ioUringProgs[rand.Intn(len(pl.ioUringProgs))]
+	}
 	return pl.progs[idx]
 }
 
@@ -57,14 +64,15 @@ func (pl *ProgramsList) saveProgram(p *prog.Prog, signal signal.Signal) {
 	}
 
 	if io_uring_flag {
-		prio *= 100000
 		log.Logf(0, "----- io_uring program found: %v, prio=%v", p, prio)
-
 	}
 
 	pl.sumPrios += prio
 	pl.accPrios = append(pl.accPrios, pl.sumPrios)
 	pl.progs = append(pl.progs, p)
+	if io_uring_flag {
+		pl.ioUringProgs = append(pl.ioUringProgs, p)
+	}
 }
 
 func (pl *ProgramsList) replace(other *ProgramsList) {
